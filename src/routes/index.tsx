@@ -33,7 +33,7 @@ export const Route = createFileRoute("/")({
 });
 
 function PosPage() {
-  const { sales, cartCount, cartTotal } = usePos();
+  const { sales, cartCount, cartTotal, activeEmployee } = usePos();
   const todayTotal = sales.filter((s) => isToday(s.at)).reduce((s, v) => s + v.total, 0);
 
   return (
