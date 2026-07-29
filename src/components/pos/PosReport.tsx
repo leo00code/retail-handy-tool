@@ -24,9 +24,9 @@ export function PosReport() {
 
   const byEmployee = new Map<string, { name: string; sales: number; units: number; total: number }>();
   today.forEach((s) => {
-    const cur = byEmployee.get(s.employeeId) ?? { name: s.employeeName, sales: 0, units: 0, total: 0 };
+    const cur = byEmployee.get(s.employeeId) ?? { name: s.employeeName ?? "Sin asignar", sales: 0, units: 0, total: 0 };
     byEmployee.set(s.employeeId, {
-      name: s.employeeName,
+      name: s.employeeName ?? "Sin asignar",
       sales: cur.sales + 1,
       units: cur.units + s.items.reduce((n, i) => n + i.qty, 0),
       total: cur.total + s.total,
@@ -47,7 +47,7 @@ export function PosReport() {
       ...today.map((s) => [
         s.id,
         new Date(s.at).toLocaleTimeString("es-CL"),
-        s.employeeName,
+        s.employeeName ?? "Sin asignar",
         s.payment,
         String(s.total),
       ]),
@@ -99,7 +99,7 @@ export function PosReport() {
                   <td className="p-3 text-muted-foreground">
                     {new Date(s.at).toLocaleTimeString("es-CL", { hour: "2-digit", minute: "2-digit" })}
                   </td>
-                  <td className="p-3">{s.employeeName}</td>
+                  <td className="p-3">{s.employeeName ?? "Sin asignar"}</td>
                   <td className="p-3 text-muted-foreground">
                     {s.items.map((i) => `${i.qty}× ${i.name}`).join(", ")}
                   </td>
