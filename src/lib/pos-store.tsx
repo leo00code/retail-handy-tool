@@ -10,12 +10,16 @@ export type Product = {
 
 export type CartLine = { productId: string; qty: number };
 
+export type Employee = { id: string; name: string };
+
 export type Sale = {
   id: string;
   at: string; // ISO
   total: number;
   items: { productId: string; name: string; qty: number; price: number }[];
   payment: "efectivo" | "tarjeta" | "transferencia";
+  employeeId: string;
+  employeeName: string;
 };
 
 const SEED: Product[] = [
