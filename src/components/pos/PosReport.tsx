@@ -22,6 +22,18 @@ export function PosReport() {
   );
   const top = [...byProduct.values()].sort((a, b) => b.qty - a.qty).slice(0, 5);
 
+  const byEmployee = new Map<string, { name: string; sales: number; units: number; total: number }>();
+  today.forEach((s) => {
+    const cur = byEmployee.get(s.employeeId) ?? { name: s.employeeName ?? "Sin asignar", sales: 0, units: 0, total: 0 };
+    byEmployee.set(s.employeeId, {
+      name: s.employeeName ?? "Sin asignar",
+      sales: cur.sales + 1,
+      units: cur.units + s.items.reduce((n, i) => n + i.qty, 0),
+      total: cur.total + s.total,
+    });
+  });
+  const employeeRows = [...byEmployee.values()].sort((a, b) => b.total - a.total);
+
   const stats = [
     { label: "Total vendido hoy", value: money(total) },
     { label: "Ventas realizadas", value: String(today.length) },
@@ -31,8 +43,14 @@ export function PosReport() {
 
   const exportCsv = () => {
     const rows = [
-      ["Venta", "Hora", "Pago", "Total"],
-      ...today.map((s) => [s.id, new Date(s.at).toLocaleTimeString("es-CL"), s.payment, String(s.total)]),
+      ["Venta", "Hora", "Empleado", "Pago", "Total"],
+      ...today.map((s) => [
+        s.id,
+        new Date(s.at).toLocaleTimeString("es-CL"),
+        s.employeeName ?? "Sin asignar",
+        s.payment,
+        String(s.total),
+      ]),
     ];
     const url = URL.createObjectURL(
       new Blob([rows.map((r) => r.join(",")).join("\n")], { type: "text/csv" }),
@@ -68,6 +86,7 @@ export function PosReport() {
               <tr>
                 <th className="p-3">Venta</th>
                 <th className="p-3">Hora</th>
+                <th className="p-3">Empleado</th>
                 <th className="p-3">Detalle</th>
                 <th className="p-3">Pago</th>
                 <th className="p-3 text-right">Total</th>
@@ -80,6 +99,7 @@ export function PosReport() {
                   <td className="p-3 text-muted-foreground">
                     {new Date(s.at).toLocaleTimeString("es-CL", { hour: "2-digit", minute: "2-digit" })}
                   </td>
+                  <td className="p-3">{s.employeeName ?? "Sin asignar"}</td>
                   <td className="p-3 text-muted-foreground">
                     {s.items.map((i) => `${i.qty}× ${i.name}`).join(", ")}
                   </td>
@@ -91,7 +111,7 @@ export function PosReport() {
               ))}
               {today.length === 0 && (
                 <tr>
-                  <td colSpan={5} className="p-8 text-center text-sm text-muted-foreground">
+                  <td colSpan={6} className="p-8 text-center text-sm text-muted-foreground">
                     Aún no hay ventas registradas hoy.
                   </td>
                 </tr>
@@ -100,19 +120,39 @@ export function PosReport() {
           </table>
         </div>
 
-        <div className="rounded-xl border border-border bg-card p-4">
-          <h2 className="font-semibold">Más vendidos hoy</h2>
-          <ul className="mt-4 space-y-3">
-            {top.map((t) => (
-              <li key={t.name} className="flex items-center justify-between gap-3 text-sm">
-                <span className="truncate">{t.name}</span>
-                <span className="shrink-0 text-muted-foreground tabular-nums">
-                  {t.qty} u. · {money(t.total)}
-                </span>
-              </li>
-            ))}
-            {top.length === 0 && <li className="text-sm text-muted-foreground">Sin datos todavía.</li>}
-          </ul>
+        <div className="space-y-6">
+          <div className="rounded-xl border border-border bg-card p-4">
+            <h2 className="font-semibold">Ventas por empleado</h2>
+            <ul className="mt-4 space-y-3">
+              {employeeRows.map((e) => (
+                <li key={e.name} className="flex items-center justify-between gap-3 text-sm">
+                  <span className="truncate">{e.name}</span>
+                  <span className="shrink-0 text-muted-foreground tabular-nums">
+                    {e.sales} v. · {e.units} u. ·{" "}
+                    <span className="font-semibold text-primary">{money(e.total)}</span>
+                  </span>
+                </li>
+              ))}
+              {employeeRows.length === 0 && (
+                <li className="text-sm text-muted-foreground">Sin ventas registradas hoy.</li>
+              )}
+            </ul>
+          </div>
+
+          <div className="rounded-xl border border-border bg-card p-4">
+            <h2 className="font-semibold">Más vendidos hoy</h2>
+            <ul className="mt-4 space-y-3">
+              {top.map((t) => (
+                <li key={t.name} className="flex items-center justify-between gap-3 text-sm">
+                  <span className="truncate">{t.name}</span>
+                  <span className="shrink-0 text-muted-foreground tabular-nums">
+                    {t.qty} u. · {money(t.total)}
+                  </span>
+                </li>
+              ))}
+              {top.length === 0 && <li className="text-sm text-muted-foreground">Sin datos todavía.</li>}
+            </ul>
+          </div>
         </div>
       </div>
     </div>

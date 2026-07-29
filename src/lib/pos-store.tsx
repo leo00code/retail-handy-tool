@@ -10,12 +10,16 @@ export type Product = {
 
 export type CartLine = { productId: string; qty: number };
 
+export type Employee = { id: string; name: string };
+
 export type Sale = {
   id: string;
   at: string; // ISO
   total: number;
   items: { productId: string; name: string; qty: number; price: number }[];
   payment: "efectivo" | "tarjeta" | "transferencia";
+  employeeId: string;
+  employeeName: string;
 };
 
 const SEED: Product[] = [
@@ -37,10 +41,21 @@ const SEED: Product[] = [
   { id: "p16", name: "Jabón de manos", category: "Limpieza", price: 1890, stock: 13 },
 ];
 
+const EMPLOYEE_SEED: Employee[] = [
+  { id: "e1", name: "Camila" },
+  { id: "e2", name: "Matías" },
+];
+
 type Ctx = {
   products: Product[];
   cart: CartLine[];
   sales: Sale[];
+  employees: Employee[];
+  activeEmployeeId: string | null;
+  activeEmployee: Employee | null;
+  setActiveEmployeeId: (id: string | null) => void;
+  addEmployee: (name: string) => void;
+  removeEmployee: (id: string) => void;
   addToCart: (id: string) => void;
   setQty: (id: string, qty: number) => void;
   removeFromCart: (id: string) => void;
@@ -69,11 +84,17 @@ export function PosProvider({ children }: { children: ReactNode }) {
   const [products, setProducts] = useState<Product[]>(SEED);
   const [sales, setSales] = useState<Sale[]>([]);
   const [cart, setCart] = useState<CartLine[]>([]);
+  const [employees, setEmployees] = useState<Employee[]>(EMPLOYEE_SEED);
+  const [activeEmployeeId, setActiveEmployeeId] = useState<string | null>(null);
   const [hydrated, setHydrated] = useState(false);
 
   useEffect(() => {
     setProducts(load("pos.products", SEED));
     setSales(load("pos.sales", [] as Sale[]));
+    const emp = load("pos.employees", EMPLOYEE_SEED);
+    setEmployees(emp);
+    const active = load<string | null>("pos.activeEmployee", null);
+    setActiveEmployeeId(emp.some((e) => e.id === active) ? active : (emp[0]?.id ?? null));
     setHydrated(true);
   }, []);
 
@@ -85,16 +106,40 @@ export function PosProvider({ children }: { children: ReactNode }) {
     if (hydrated) window.localStorage.setItem("pos.sales", JSON.stringify(sales));
   }, [sales, hydrated]);
 
+  useEffect(() => {
+    if (hydrated) window.localStorage.setItem("pos.employees", JSON.stringify(employees));
+  }, [employees, hydrated]);
+
+  useEffect(() => {
+    if (hydrated) window.localStorage.setItem("pos.activeEmployee", JSON.stringify(activeEmployeeId));
+  }, [activeEmployeeId, hydrated]);
+
   const value = useMemo<Ctx>(() => {
     const cartTotal = cart.reduce((sum, line) => {
       const p = products.find((x) => x.id === line.productId);
       return sum + (p ? p.price * line.qty : 0);
     }, 0);
 
+    const activeEmployee = employees.find((e) => e.id === activeEmployeeId) ?? null;
+
     return {
       products,
       cart,
       sales,
+      employees,
+      activeEmployeeId,
+      activeEmployee,
+      setActiveEmployeeId,
+      addEmployee: (name) =>
+        setEmployees((prev) => {
+          const emp = { id: `e-${Date.now()}`, name };
+          setActiveEmployeeId((cur) => cur ?? emp.id);
+          return [...prev, emp];
+        }),
+      removeEmployee: (id) => {
+        setEmployees((prev) => prev.filter((e) => e.id !== id));
+        setActiveEmployeeId((cur) => (cur === id ? null : cur));
+      },
       cartTotal,
       cartCount: cart.reduce((n, l) => n + l.qty, 0),
       addToCart: (id) =>
@@ -120,7 +165,7 @@ export function PosProvider({ children }: { children: ReactNode }) {
       removeFromCart: (id) => setCart((prev) => prev.filter((l) => l.productId !== id)),
       clearCart: () => setCart([]),
       checkout: (payment) => {
-        if (cart.length === 0) return null;
+        if (cart.length === 0 || !activeEmployee) return null;
         const items = cart.map((l) => {
           const p = products.find((x) => x.id === l.productId)!;
           return { productId: p.id, name: p.name, qty: l.qty, price: p.price };
@@ -131,6 +176,8 @@ export function PosProvider({ children }: { children: ReactNode }) {
           total: items.reduce((s, i) => s + i.price * i.qty, 0),
           items,
           payment,
+          employeeId: activeEmployee.id,
+          employeeName: activeEmployee.name,
         };
         setProducts((prev) =>
           prev.map((p) => {
@@ -150,7 +197,7 @@ export function PosProvider({ children }: { children: ReactNode }) {
         setCart((prev) => prev.filter((l) => l.productId !== id));
       },
     };
-  }, [products, cart, sales]);
+  }, [products, cart, sales, employees, activeEmployeeId]);
 
   return <PosContext.Provider value={value}>{children}</PosContext.Provider>;
 }

@@ -5,6 +5,7 @@ import { PosProvider, usePos, money, isToday } from "@/lib/pos-store";
 import { PosSale } from "@/components/pos/PosSale";
 import { PosInventory } from "@/components/pos/PosInventory";
 import { PosReport } from "@/components/pos/PosReport";
+import { PosEmployees } from "@/components/pos/PosEmployees";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -32,7 +33,7 @@ export const Route = createFileRoute("/")({
 });
 
 function PosPage() {
-  const { sales, cartCount, cartTotal } = usePos();
+  const { sales, cartCount, cartTotal, activeEmployee } = usePos();
   const todayTotal = sales.filter((s) => isToday(s.at)).reduce((s, v) => s + v.total, 0);
 
   return (
@@ -49,6 +50,10 @@ function PosPage() {
             </div>
           </div>
           <div className="flex gap-6 text-right">
+            <div>
+              <p className="text-xs uppercase tracking-wide text-muted-foreground">En caja</p>
+              <p className="font-semibold">{activeEmployee?.name ?? "Sin asignar"}</p>
+            </div>
             <div>
               <p className="text-xs uppercase tracking-wide text-muted-foreground">Venta actual</p>
               <p className="font-semibold tabular-nums">
@@ -68,6 +73,7 @@ function PosPage() {
           <TabsList className="mb-6">
             <TabsTrigger value="venta">Caja</TabsTrigger>
             <TabsTrigger value="inventario">Inventario</TabsTrigger>
+            <TabsTrigger value="empleados">Empleados</TabsTrigger>
             <TabsTrigger value="reporte">Reporte del día</TabsTrigger>
           </TabsList>
           <TabsContent value="venta">
@@ -75,6 +81,9 @@ function PosPage() {
           </TabsContent>
           <TabsContent value="inventario">
             <PosInventory />
+          </TabsContent>
+          <TabsContent value="empleados">
+            <PosEmployees />
           </TabsContent>
           <TabsContent value="reporte">
             <PosReport />
