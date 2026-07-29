@@ -84,11 +84,17 @@ export function PosProvider({ children }: { children: ReactNode }) {
   const [products, setProducts] = useState<Product[]>(SEED);
   const [sales, setSales] = useState<Sale[]>([]);
   const [cart, setCart] = useState<CartLine[]>([]);
+  const [employees, setEmployees] = useState<Employee[]>(EMPLOYEE_SEED);
+  const [activeEmployeeId, setActiveEmployeeId] = useState<string | null>(null);
   const [hydrated, setHydrated] = useState(false);
 
   useEffect(() => {
     setProducts(load("pos.products", SEED));
     setSales(load("pos.sales", [] as Sale[]));
+    const emp = load("pos.employees", EMPLOYEE_SEED);
+    setEmployees(emp);
+    const active = load<string | null>("pos.activeEmployee", null);
+    setActiveEmployeeId(emp.some((e) => e.id === active) ? active : (emp[0]?.id ?? null));
     setHydrated(true);
   }, []);
 
@@ -100,16 +106,40 @@ export function PosProvider({ children }: { children: ReactNode }) {
     if (hydrated) window.localStorage.setItem("pos.sales", JSON.stringify(sales));
   }, [sales, hydrated]);
 
+  useEffect(() => {
+    if (hydrated) window.localStorage.setItem("pos.employees", JSON.stringify(employees));
+  }, [employees, hydrated]);
+
+  useEffect(() => {
+    if (hydrated) window.localStorage.setItem("pos.activeEmployee", JSON.stringify(activeEmployeeId));
+  }, [activeEmployeeId, hydrated]);
+
   const value = useMemo<Ctx>(() => {
     const cartTotal = cart.reduce((sum, line) => {
       const p = products.find((x) => x.id === line.productId);
       return sum + (p ? p.price * line.qty : 0);
     }, 0);
 
+    const activeEmployee = employees.find((e) => e.id === activeEmployeeId) ?? null;
+
     return {
       products,
       cart,
       sales,
+      employees,
+      activeEmployeeId,
+      activeEmployee,
+      setActiveEmployeeId,
+      addEmployee: (name) =>
+        setEmployees((prev) => {
+          const emp = { id: `e-${Date.now()}`, name };
+          setActiveEmployeeId((cur) => cur ?? emp.id);
+          return [...prev, emp];
+        }),
+      removeEmployee: (id) => {
+        setEmployees((prev) => prev.filter((e) => e.id !== id));
+        setActiveEmployeeId((cur) => (cur === id ? null : cur));
+      },
       cartTotal,
       cartCount: cart.reduce((n, l) => n + l.qty, 0),
       addToCart: (id) =>
