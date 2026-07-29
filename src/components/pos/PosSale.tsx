@@ -201,12 +201,14 @@ export function PosSale() {
               {cart.map((line) => {
                 const p = products.find((x) => x.id === line.productId);
                 if (!p) return null;
+                const step = p.unit === "kg" ? 0.1 : 1;
                 return (
                   <div key={line.productId} className="flex items-center gap-2">
                     <div className="min-w-0 flex-1">
                       <p className="truncate text-sm font-medium">{p.name}</p>
                       <p className="text-xs text-muted-foreground">
-                        {money(p.price)} · subtotal {money(p.price * line.qty)}
+                        {money(p.price)}
+                        {p.unit === "kg" ? "/kg" : ""} · subtotal {money(p.price * line.qty)}
                       </p>
                     </div>
                     <div className="flex items-center gap-1">
@@ -214,16 +216,18 @@ export function PosSale() {
                         size="icon"
                         variant="outline"
                         className="size-7"
-                        onClick={() => setQty(p.id, line.qty - 1)}
+                        onClick={() => setQty(p.id, line.qty - step)}
                       >
                         <Minus className="size-3" />
                       </Button>
-                      <span className="w-6 text-center text-sm tabular-nums">{line.qty}</span>
+                      <span className="w-14 text-center text-xs tabular-nums">
+                        {formatQty(line.qty, p.unit)}
+                      </span>
                       <Button
                         size="icon"
                         variant="outline"
                         className="size-7"
-                        onClick={() => setQty(p.id, line.qty + 1)}
+                        onClick={() => setQty(p.id, line.qty + step)}
                       >
                         <Plus className="size-3" />
                       </Button>
@@ -239,6 +243,7 @@ export function PosSale() {
                   </div>
                 );
               })}
+
             </div>
           </ScrollArea>
           <Separator />
