@@ -108,7 +108,14 @@ export function PosProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     const stored = load("pos.products", SEED);
-    setProducts(stored.map((p) => ({ ...p, unit: p.unit === "kg" ? "kg" : "unidad" })));
+    const normalized: Product[] = stored.map((p) => ({
+      ...p,
+      unit: p.unit === "kg" ? "kg" : "unidad",
+    }));
+    const missing = SEED.filter(
+      (s) => s.unit === "kg" && !normalized.some((p) => p.id === s.id || p.name === s.name),
+    );
+    setProducts([...normalized, ...missing]);
     setSales(load("pos.sales", [] as Sale[]));
     const emp = load("pos.employees", EMPLOYEE_SEED);
     setEmployees(emp);
