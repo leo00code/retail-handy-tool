@@ -197,7 +197,7 @@ export function PosProvider({ children }: { children: ReactNode }) {
         setCart((prev) => prev.filter((l) => l.productId !== id));
       },
     };
-  }, [products, cart, sales]);
+  }, [products, cart, sales, employees, activeEmployeeId]);
 
   return <PosContext.Provider value={value}>{children}</PosContext.Provider>;
 }
