@@ -166,6 +166,9 @@ export function PosReport() {
           </div>
         </div>
       </div>
+
+      <PosReceipt sale={ticket} open={ticket !== null} onOpenChange={(o) => !o && setTicket(null)} />
     </div>
+
   );
 }
