@@ -95,22 +95,37 @@ export function PosSale() {
             <button
               key={p.id}
               onClick={() => {
-                if (p.stock < 1) return toast.error(`${p.name} sin stock`);
+                if (p.stock <= 0) return toast.error(`${p.name} sin stock`);
+                if (p.unit === "kg") {
+                  setWeighing(p);
+                  setWeightInput("");
+                  return;
+                }
                 addToCart(p.id);
               }}
-              disabled={p.stock < 1}
+              disabled={p.stock <= 0}
               className="group flex h-full flex-col justify-between rounded-xl border border-border bg-card p-4 text-left transition-all hover:-translate-y-0.5 hover:border-primary hover:shadow-md disabled:opacity-50 disabled:hover:translate-y-0"
             >
               <div>
                 <p className="text-xs uppercase tracking-wide text-muted-foreground">{p.category}</p>
                 <p className="mt-1 font-medium leading-snug text-card-foreground">{p.name}</p>
               </div>
-              <div className="mt-4 flex items-end justify-between">
-                <span className="text-lg font-semibold text-primary">{money(p.price)}</span>
-                <Badge variant={p.stock <= 5 ? "destructive" : "secondary"}>{p.stock} u.</Badge>
+              <div className="mt-4 flex items-end justify-between gap-2">
+                <span className="text-lg font-semibold text-primary">
+                  {money(p.price)}
+                  {p.unit === "kg" && (
+                    <span className="text-xs font-normal text-muted-foreground"> /kg</span>
+                  )}
+                </span>
+                <Badge
+                  variant={p.stock <= (p.unit === "kg" ? 3 : 5) ? "destructive" : "secondary"}
+                >
+                  {formatQty(p.stock, p.unit)}
+                </Badge>
               </div>
             </button>
           ))}
+
           {visible.length === 0 && (
             <p className="col-span-full py-12 text-center text-sm text-muted-foreground">
               No se encontraron productos.
