@@ -61,7 +61,7 @@ export function PosInventory() {
           <span className="font-medium text-accent-foreground">Stock bajo:</span>
           {lowStock.map((p) => (
             <Badge key={p.id} variant="outline">
-              {p.name} ({p.stock})
+              {p.name} ({formatQty(p.stock, p.unit)})
             </Badge>
           ))}
         </div>
@@ -69,7 +69,7 @@ export function PosInventory() {
 
       <form
         onSubmit={submit}
-        className="grid gap-3 rounded-xl border border-border bg-card p-4 sm:grid-cols-[2fr_1fr_1fr_1fr_auto]"
+        className="grid gap-3 rounded-xl border border-border bg-card p-4 sm:grid-cols-[2fr_1fr_1fr_1fr_1fr_auto]"
       >
         <Input
           placeholder="Nombre del producto"
@@ -81,17 +81,30 @@ export function PosInventory() {
           value={form.category}
           onChange={(e) => setForm({ ...form, category: e.target.value })}
         />
+        <Select
+          value={form.unit}
+          onValueChange={(v) => setForm({ ...form, unit: v as Unit })}
+        >
+          <SelectTrigger>
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="unidad">Por unidad</SelectItem>
+            <SelectItem value="kg">Por kilo</SelectItem>
+          </SelectContent>
+        </Select>
         <Input
           type="number"
           min={0}
-          placeholder="Precio"
+          placeholder={form.unit === "kg" ? "Precio por kg" : "Precio"}
           value={form.price}
           onChange={(e) => setForm({ ...form, price: e.target.value })}
         />
         <Input
           type="number"
           min={0}
-          placeholder="Stock"
+          step={form.unit === "kg" ? 0.1 : 1}
+          placeholder={form.unit === "kg" ? "Stock (kg)" : "Stock"}
           value={form.stock}
           onChange={(e) => setForm({ ...form, stock: e.target.value })}
         />
@@ -106,25 +119,47 @@ export function PosInventory() {
             <tr>
               <th className="p-3">Producto</th>
               <th className="p-3">Categoría</th>
-              <th className="p-3 w-32">Precio</th>
-              <th className="p-3 w-44">Stock</th>
+              <th className="p-3 w-32">Venta</th>
+              <th className="p-3 w-36">Precio</th>
+              <th className="p-3 w-48">Stock</th>
               <th className="p-3 w-28 text-right">Valor</th>
               <th className="p-3 w-12" />
             </tr>
           </thead>
           <tbody>
-            {products.map((p) => (
+            {products.map((p) => {
+              const step = p.unit === "kg" ? 0.5 : 1;
+              return (
               <tr key={p.id} className="border-t border-border">
                 <td className="p-3 font-medium">{p.name}</td>
                 <td className="p-3 text-muted-foreground">{p.category}</td>
                 <td className="p-3">
-                  <Input
-                    type="number"
-                    min={0}
-                    value={p.price}
-                    onChange={(e) => updateProduct(p.id, { price: Number(e.target.value) || 0 })}
-                    className="h-8"
-                  />
+                  <Select
+                    value={p.unit}
+                    onValueChange={(v) => updateProduct(p.id, { unit: v as Unit })}
+                  >
+                    <SelectTrigger className="h-8">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="unidad">Unidad</SelectItem>
+                      <SelectItem value="kg">Kilo</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </td>
+                <td className="p-3">
+                  <div className="flex items-center gap-1">
+                    <Input
+                      type="number"
+                      min={0}
+                      value={p.price}
+                      onChange={(e) => updateProduct(p.id, { price: Number(e.target.value) || 0 })}
+                      className="h-8"
+                    />
+                    <span className="shrink-0 text-xs text-muted-foreground">
+                      {p.unit === "kg" ? "/kg" : "c/u"}
+                    </span>
+                  </div>
                 </td>
                 <td className="p-3">
                   <div className="flex items-center gap-1">
@@ -132,13 +167,16 @@ export function PosInventory() {
                       size="icon"
                       variant="outline"
                       className="size-8"
-                      onClick={() => updateProduct(p.id, { stock: Math.max(0, p.stock - 1) })}
+                      onClick={() =>
+                        updateProduct(p.id, { stock: Math.max(0, Number((p.stock - step).toFixed(3))) })
+                      }
                     >
                       −
                     </Button>
                     <Input
                       type="number"
                       min={0}
+                      step={step}
                       value={p.stock}
                       onChange={(e) =>
                         updateProduct(p.id, { stock: Math.max(0, Number(e.target.value) || 0) })
@@ -149,13 +187,19 @@ export function PosInventory() {
                       size="icon"
                       variant="outline"
                       className="size-8"
-                      onClick={() => updateProduct(p.id, { stock: p.stock + 1 })}
+                      onClick={() =>
+                        updateProduct(p.id, { stock: Number((p.stock + step).toFixed(3)) })
+                      }
                     >
                       +
                     </Button>
+                    <span className="shrink-0 text-xs text-muted-foreground">
+                      {p.unit === "kg" ? "kg" : "u."}
+                    </span>
                   </div>
                 </td>
                 <td className="p-3 text-right tabular-nums">{money(p.price * p.stock)}</td>
+
                 <td className="p-3">
                   <AlertDialog>
                     <AlertDialogTrigger asChild>
