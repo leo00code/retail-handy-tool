@@ -1,11 +1,14 @@
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 
+export type Unit = "unidad" | "kg";
+
 export type Product = {
   id: string;
   name: string;
   category: string;
-  price: number;
-  stock: number;
+  price: number; // por unidad o por kg según `unit`
+  stock: number; // unidades o kilos
+  unit: Unit;
 };
 
 export type CartLine = { productId: string; qty: number };
@@ -16,11 +19,12 @@ export type Sale = {
   id: string;
   at: string; // ISO
   total: number;
-  items: { productId: string; name: string; qty: number; price: number }[];
+  items: { productId: string; name: string; qty: number; price: number; unit: Unit }[];
   payment: "efectivo" | "tarjeta" | "transferencia";
   employeeId: string;
   employeeName: string;
 };
+
 
 const SEED: Product[] = [
   { id: "p1", name: "Leche entera 1L", category: "Lácteos", price: 1290, stock: 24 },
