@@ -22,6 +22,18 @@ export function PosReport() {
   );
   const top = [...byProduct.values()].sort((a, b) => b.qty - a.qty).slice(0, 5);
 
+  const byEmployee = new Map<string, { name: string; sales: number; units: number; total: number }>();
+  today.forEach((s) => {
+    const cur = byEmployee.get(s.employeeId) ?? { name: s.employeeName, sales: 0, units: 0, total: 0 };
+    byEmployee.set(s.employeeId, {
+      name: s.employeeName,
+      sales: cur.sales + 1,
+      units: cur.units + s.items.reduce((n, i) => n + i.qty, 0),
+      total: cur.total + s.total,
+    });
+  });
+  const employeeRows = [...byEmployee.values()].sort((a, b) => b.total - a.total);
+
   const stats = [
     { label: "Total vendido hoy", value: money(total) },
     { label: "Ventas realizadas", value: String(today.length) },
@@ -31,8 +43,14 @@ export function PosReport() {
 
   const exportCsv = () => {
     const rows = [
-      ["Venta", "Hora", "Pago", "Total"],
-      ...today.map((s) => [s.id, new Date(s.at).toLocaleTimeString("es-CL"), s.payment, String(s.total)]),
+      ["Venta", "Hora", "Empleado", "Pago", "Total"],
+      ...today.map((s) => [
+        s.id,
+        new Date(s.at).toLocaleTimeString("es-CL"),
+        s.employeeName,
+        s.payment,
+        String(s.total),
+      ]),
     ];
     const url = URL.createObjectURL(
       new Blob([rows.map((r) => r.join(",")).join("\n")], { type: "text/csv" }),
