@@ -7,6 +7,8 @@ import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { usePos, money, type Sale } from "@/lib/pos-store";
+import { PosReceipt } from "@/components/pos/PosReceipt";
+
 
 export function PosSale() {
   const {
@@ -24,6 +26,9 @@ export function PosSale() {
   } = usePos();
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState("Todas");
+  const [lastSale, setLastSale] = useState<Sale | null>(null);
+  const [receiptOpen, setReceiptOpen] = useState(false);
+
 
   const categories = useMemo(
     () => ["Todas", ...Array.from(new Set(products.map((p) => p.category)))],
@@ -50,10 +55,13 @@ export function PosSale() {
       toast.error("No se pudo registrar la venta");
       return;
     }
+    setLastSale(sale);
+    setReceiptOpen(true);
     toast.success(`Venta ${sale.id} cobrada por ${sale.employeeName}`, {
       description: `${money(sale.total)} en ${method}`,
     });
   };
+
 
   return (
     <div className="grid gap-6 lg:grid-cols-[1fr_380px]">
@@ -217,9 +225,20 @@ export function PosSale() {
                 Transf.
               </Button>
             </div>
+            {lastSale && (
+              <Button
+                variant="ghost"
+                className="w-full"
+                onClick={() => setReceiptOpen(true)}
+              >
+                Ver último ticket ({lastSale.id})
+              </Button>
+            )}
           </div>
         </div>
+        <PosReceipt sale={lastSale} open={receiptOpen} onOpenChange={setReceiptOpen} />
       </aside>
+
     </div>
   );
 }

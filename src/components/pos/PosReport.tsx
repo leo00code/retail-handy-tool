@@ -1,9 +1,13 @@
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { usePos, money, isToday } from "@/lib/pos-store";
+import { usePos, money, isToday, type Sale } from "@/lib/pos-store";
+import { PosReceipt } from "@/components/pos/PosReceipt";
 
 export function PosReport() {
   const { sales } = usePos();
+  const [ticket, setTicket] = useState<Sale | null>(null);
+
   const today = sales.filter((s) => isToday(s.at));
   const total = today.reduce((s, v) => s + v.total, 0);
   const units = today.reduce((s, v) => s + v.items.reduce((n, i) => n + i.qty, 0), 0);
@@ -90,6 +94,7 @@ export function PosReport() {
                 <th className="p-3">Detalle</th>
                 <th className="p-3">Pago</th>
                 <th className="p-3 text-right">Total</th>
+                <th className="p-3 text-right">Ticket</th>
               </tr>
             </thead>
             <tbody>
@@ -107,15 +112,21 @@ export function PosReport() {
                     <Badge variant="secondary">{s.payment}</Badge>
                   </td>
                   <td className="p-3 text-right font-semibold tabular-nums">{money(s.total)}</td>
+                  <td className="p-3 text-right">
+                    <Button size="sm" variant="outline" onClick={() => setTicket(s)}>
+                      Ver
+                    </Button>
+                  </td>
                 </tr>
               ))}
               {today.length === 0 && (
                 <tr>
-                  <td colSpan={6} className="p-8 text-center text-sm text-muted-foreground">
+                  <td colSpan={7} className="p-8 text-center text-sm text-muted-foreground">
                     Aún no hay ventas registradas hoy.
                   </td>
                 </tr>
               )}
+
             </tbody>
           </table>
         </div>
@@ -155,6 +166,9 @@ export function PosReport() {
           </div>
         </div>
       </div>
+
+      <PosReceipt sale={ticket} open={ticket !== null} onOpenChange={(o) => !o && setTicket(null)} />
     </div>
+
   );
 }
