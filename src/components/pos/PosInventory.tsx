@@ -229,7 +229,9 @@ export function PosInventory() {
                   </AlertDialog>
                 </td>
               </tr>
-            ))}
+              );
+            })}
+
           </tbody>
         </table>
       </div>
