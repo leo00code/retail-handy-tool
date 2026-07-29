@@ -51,6 +51,10 @@ function PosPage() {
           </div>
           <div className="flex gap-6 text-right">
             <div>
+              <p className="text-xs uppercase tracking-wide text-muted-foreground">En caja</p>
+              <p className="font-semibold">{activeEmployee?.name ?? "Sin asignar"}</p>
+            </div>
+            <div>
               <p className="text-xs uppercase tracking-wide text-muted-foreground">Venta actual</p>
               <p className="font-semibold tabular-nums">
                 {money(cartTotal)} <span className="text-xs text-muted-foreground">({cartCount})</span>
@@ -69,6 +73,7 @@ function PosPage() {
           <TabsList className="mb-6">
             <TabsTrigger value="venta">Caja</TabsTrigger>
             <TabsTrigger value="inventario">Inventario</TabsTrigger>
+            <TabsTrigger value="empleados">Empleados</TabsTrigger>
             <TabsTrigger value="reporte">Reporte del día</TabsTrigger>
           </TabsList>
           <TabsContent value="venta">
@@ -76,6 +81,9 @@ function PosPage() {
           </TabsContent>
           <TabsContent value="inventario">
             <PosInventory />
+          </TabsContent>
+          <TabsContent value="empleados">
+            <PosEmployees />
           </TabsContent>
           <TabsContent value="reporte">
             <PosReport />
