@@ -5,6 +5,7 @@ import { PosProvider, usePos, money, isToday } from "@/lib/pos-store";
 import { PosSale } from "@/components/pos/PosSale";
 import { PosInventory } from "@/components/pos/PosInventory";
 import { PosReport } from "@/components/pos/PosReport";
+import { PosEmployees } from "@/components/pos/PosEmployees";
 
 export const Route = createFileRoute("/")({
   head: () => ({
