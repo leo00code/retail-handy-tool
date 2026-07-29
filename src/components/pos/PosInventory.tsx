@@ -15,26 +15,43 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { usePos, money } from "@/lib/pos-store";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { usePos, money, formatQty, type Unit } from "@/lib/pos-store";
 
 export function PosInventory() {
   const { products, updateProduct, addProduct, removeProduct } = usePos();
-  const [form, setForm] = useState({ name: "", category: "", price: "", stock: "" });
+  const [form, setForm] = useState<{
+    name: string;
+    category: string;
+    price: string;
+    stock: string;
+    unit: Unit;
+  }>({ name: "", category: "", price: "", stock: "", unit: "unidad" });
 
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!form.name.trim()) return toast.error("Ingresa el nombre del producto");
     addProduct({
       name: form.name.trim(),
-      category: form.category.trim() || "General",
+      category: form.category.trim() || (form.unit === "kg" ? "Frutas y verduras" : "General"),
       price: Number(form.price) || 0,
       stock: Number(form.stock) || 0,
+      unit: form.unit,
     });
-    setForm({ name: "", category: "", price: "", stock: "" });
-    toast.success("Producto agregado al inventario");
+    setForm({ name: "", category: "", price: "", stock: "", unit: form.unit });
+    toast.success(
+      form.unit === "kg" ? "Producto por kilo agregado" : "Producto agregado al inventario",
+    );
   };
 
-  const lowStock = products.filter((p) => p.stock <= 5);
+  const lowStock = products.filter((p) => (p.unit === "kg" ? p.stock <= 3 : p.stock <= 5));
+
 
   return (
     <div className="space-y-6">
