@@ -124,6 +124,28 @@ export function PosSale() {
             )}
           </div>
           <Separator />
+          <div className="space-y-2 p-4">
+            <p className="text-xs uppercase tracking-wide text-muted-foreground">Empleado en caja</p>
+            {employees.length === 0 ? (
+              <p className="text-sm text-muted-foreground">
+                Agrega empleados en la pestaña «Empleados».
+              </p>
+            ) : (
+              <div className="flex flex-wrap gap-2">
+                {employees.map((e) => (
+                  <Button
+                    key={e.id}
+                    size="sm"
+                    variant={e.id === activeEmployeeId ? "default" : "outline"}
+                    onClick={() => setActiveEmployeeId(e.id)}
+                  >
+                    {e.name}
+                  </Button>
+                ))}
+              </div>
+            )}
+          </div>
+          <Separator />
           <ScrollArea className="max-h-[46vh]">
             <div className="space-y-3 p-4">
               {cart.length === 0 && (
