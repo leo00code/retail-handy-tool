@@ -155,24 +155,27 @@ export function PosProvider({ children }: { children: ReactNode }) {
       },
       cartTotal,
       cartCount: cart.reduce((n, l) => n + l.qty, 0),
-      addToCart: (id) =>
+      addToCart: (id, qty) =>
         setCart((prev) => {
           const p = products.find((x) => x.id === id);
           if (!p) return prev;
+          const step = qty ?? (p.unit === "kg" ? 0.5 : 1);
           const found = prev.find((l) => l.productId === id);
           if (found) {
-            if (found.qty >= p.stock) return prev;
-            return prev.map((l) => (l.productId === id ? { ...l, qty: l.qty + 1 } : l));
+            const next = roundQty(Math.min(found.qty + step, p.stock), p.unit);
+            if (next <= found.qty) return prev;
+            return prev.map((l) => (l.productId === id ? { ...l, qty: next } : l));
           }
-          if (p.stock < 1) return prev;
-          return [...prev, { productId: id, qty: 1 }];
+          const next = roundQty(Math.min(step, p.stock), p.unit);
+          if (next <= 0) return prev;
+          return [...prev, { productId: id, qty: next }];
         }),
       setQty: (id, qty) =>
         setCart((prev) => {
           const p = products.find((x) => x.id === id);
           const max = p ? p.stock : 0;
-          const next = Math.max(0, Math.min(qty, max));
-          if (next === 0) return prev.filter((l) => l.productId !== id);
+          const next = roundQty(Math.max(0, Math.min(qty, max)), p?.unit ?? "unidad");
+          if (next <= 0) return prev.filter((l) => l.productId !== id);
           return prev.map((l) => (l.productId === id ? { ...l, qty: next } : l));
         }),
       removeFromCart: (id) => setCart((prev) => prev.filter((l) => l.productId !== id)),
@@ -181,8 +184,9 @@ export function PosProvider({ children }: { children: ReactNode }) {
         if (cart.length === 0 || !activeEmployee) return null;
         const items = cart.map((l) => {
           const p = products.find((x) => x.id === l.productId)!;
-          return { productId: p.id, name: p.name, qty: l.qty, price: p.price };
+          return { productId: p.id, name: p.name, qty: l.qty, price: p.price, unit: p.unit };
         });
+
         const sale: Sale = {
           id: `V-${Date.now()}`,
           at: new Date().toISOString(),
