@@ -6,8 +6,17 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
-import { usePos, money, type Sale } from "@/lib/pos-store";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { usePos, money, formatQty, type Sale, type Product } from "@/lib/pos-store";
 import { PosReceipt } from "@/components/pos/PosReceipt";
+
 
 
 export function PosSale() {
