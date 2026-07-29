@@ -86,6 +86,7 @@ export function PosReport() {
               <tr>
                 <th className="p-3">Venta</th>
                 <th className="p-3">Hora</th>
+                <th className="p-3">Empleado</th>
                 <th className="p-3">Detalle</th>
                 <th className="p-3">Pago</th>
                 <th className="p-3 text-right">Total</th>
@@ -98,6 +99,7 @@ export function PosReport() {
                   <td className="p-3 text-muted-foreground">
                     {new Date(s.at).toLocaleTimeString("es-CL", { hour: "2-digit", minute: "2-digit" })}
                   </td>
+                  <td className="p-3">{s.employeeName}</td>
                   <td className="p-3 text-muted-foreground">
                     {s.items.map((i) => `${i.qty}× ${i.name}`).join(", ")}
                   </td>
@@ -109,7 +111,7 @@ export function PosReport() {
               ))}
               {today.length === 0 && (
                 <tr>
-                  <td colSpan={5} className="p-8 text-center text-sm text-muted-foreground">
+                  <td colSpan={6} className="p-8 text-center text-sm text-muted-foreground">
                     Aún no hay ventas registradas hoy.
                   </td>
                 </tr>
