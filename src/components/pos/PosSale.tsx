@@ -37,6 +37,19 @@ export function PosSale() {
   const [category, setCategory] = useState("Todas");
   const [lastSale, setLastSale] = useState<Sale | null>(null);
   const [receiptOpen, setReceiptOpen] = useState(false);
+  const [weighing, setWeighing] = useState<Product | null>(null);
+  const [weightInput, setWeightInput] = useState("");
+
+  const confirmWeight = (kg: number) => {
+    if (!weighing) return;
+    if (!Number.isFinite(kg) || kg <= 0) return toast.error("Ingresa un peso válido");
+    if (kg > weighing.stock)
+      return toast.error(`Solo quedan ${formatQty(weighing.stock, "kg")} de ${weighing.name}`);
+    addToCart(weighing.id, kg);
+    setWeighing(null);
+    setWeightInput("");
+  };
+
 
 
   const categories = useMemo(
