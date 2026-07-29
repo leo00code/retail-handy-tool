@@ -143,3 +143,20 @@
     color: var(--color-foreground);
   }
 }
+
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  #pos-ticket,
+  #pos-ticket * {
+    visibility: visible;
+  }
+  #pos-ticket {
+    position: fixed;
+    inset: 0 auto auto 0;
+    width: 80mm;
+    border: none;
+    padding: 0;
+  }
+}
