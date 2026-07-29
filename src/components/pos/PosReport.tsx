@@ -120,19 +120,39 @@ export function PosReport() {
           </table>
         </div>
 
-        <div className="rounded-xl border border-border bg-card p-4">
-          <h2 className="font-semibold">Más vendidos hoy</h2>
-          <ul className="mt-4 space-y-3">
-            {top.map((t) => (
-              <li key={t.name} className="flex items-center justify-between gap-3 text-sm">
-                <span className="truncate">{t.name}</span>
-                <span className="shrink-0 text-muted-foreground tabular-nums">
-                  {t.qty} u. · {money(t.total)}
-                </span>
-              </li>
-            ))}
-            {top.length === 0 && <li className="text-sm text-muted-foreground">Sin datos todavía.</li>}
-          </ul>
+        <div className="space-y-6">
+          <div className="rounded-xl border border-border bg-card p-4">
+            <h2 className="font-semibold">Ventas por empleado</h2>
+            <ul className="mt-4 space-y-3">
+              {employeeRows.map((e) => (
+                <li key={e.name} className="flex items-center justify-between gap-3 text-sm">
+                  <span className="truncate">{e.name}</span>
+                  <span className="shrink-0 text-muted-foreground tabular-nums">
+                    {e.sales} v. · {e.units} u. ·{" "}
+                    <span className="font-semibold text-primary">{money(e.total)}</span>
+                  </span>
+                </li>
+              ))}
+              {employeeRows.length === 0 && (
+                <li className="text-sm text-muted-foreground">Sin ventas registradas hoy.</li>
+              )}
+            </ul>
+          </div>
+
+          <div className="rounded-xl border border-border bg-card p-4">
+            <h2 className="font-semibold">Más vendidos hoy</h2>
+            <ul className="mt-4 space-y-3">
+              {top.map((t) => (
+                <li key={t.name} className="flex items-center justify-between gap-3 text-sm">
+                  <span className="truncate">{t.name}</span>
+                  <span className="shrink-0 text-muted-foreground tabular-nums">
+                    {t.qty} u. · {money(t.total)}
+                  </span>
+                </li>
+              ))}
+              {top.length === 0 && <li className="text-sm text-muted-foreground">Sin datos todavía.</li>}
+            </ul>
+          </div>
         </div>
       </div>
     </div>
