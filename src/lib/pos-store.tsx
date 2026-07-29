@@ -165,7 +165,7 @@ export function PosProvider({ children }: { children: ReactNode }) {
       removeFromCart: (id) => setCart((prev) => prev.filter((l) => l.productId !== id)),
       clearCart: () => setCart([]),
       checkout: (payment) => {
-        if (cart.length === 0) return null;
+        if (cart.length === 0 || !activeEmployee) return null;
         const items = cart.map((l) => {
           const p = products.find((x) => x.id === l.productId)!;
           return { productId: p.id, name: p.name, qty: l.qty, price: p.price };
@@ -176,6 +176,8 @@ export function PosProvider({ children }: { children: ReactNode }) {
           total: items.reduce((s, i) => s + i.price * i.qty, 0),
           items,
           payment,
+          employeeId: activeEmployee.id,
+          employeeName: activeEmployee.name,
         };
         setProducts((prev) =>
           prev.map((p) => {
