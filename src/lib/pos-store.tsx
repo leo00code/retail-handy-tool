@@ -107,7 +107,8 @@ export function PosProvider({ children }: { children: ReactNode }) {
   const [hydrated, setHydrated] = useState(false);
 
   useEffect(() => {
-    setProducts(load("pos.products", SEED));
+    const stored = load("pos.products", SEED);
+    setProducts(stored.map((p) => ({ ...p, unit: p.unit === "kg" ? "kg" : "unidad" })));
     setSales(load("pos.sales", [] as Sale[]));
     const emp = load("pos.employees", EMPLOYEE_SEED);
     setEmployees(emp);
