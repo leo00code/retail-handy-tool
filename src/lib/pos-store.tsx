@@ -41,10 +41,21 @@ const SEED: Product[] = [
   { id: "p16", name: "Jabón de manos", category: "Limpieza", price: 1890, stock: 13 },
 ];
 
+const EMPLOYEE_SEED: Employee[] = [
+  { id: "e1", name: "Camila" },
+  { id: "e2", name: "Matías" },
+];
+
 type Ctx = {
   products: Product[];
   cart: CartLine[];
   sales: Sale[];
+  employees: Employee[];
+  activeEmployeeId: string | null;
+  activeEmployee: Employee | null;
+  setActiveEmployeeId: (id: string | null) => void;
+  addEmployee: (name: string) => void;
+  removeEmployee: (id: string) => void;
   addToCart: (id: string) => void;
   setQty: (id: string, qty: number) => void;
   removeFromCart: (id: string) => void;
