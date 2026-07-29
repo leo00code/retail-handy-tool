@@ -94,6 +94,7 @@ export function PosReport() {
                 <th className="p-3">Detalle</th>
                 <th className="p-3">Pago</th>
                 <th className="p-3 text-right">Total</th>
+                <th className="p-3 text-right">Ticket</th>
               </tr>
             </thead>
             <tbody>
@@ -111,15 +112,21 @@ export function PosReport() {
                     <Badge variant="secondary">{s.payment}</Badge>
                   </td>
                   <td className="p-3 text-right font-semibold tabular-nums">{money(s.total)}</td>
+                  <td className="p-3 text-right">
+                    <Button size="sm" variant="outline" onClick={() => setTicket(s)}>
+                      Ver
+                    </Button>
+                  </td>
                 </tr>
               ))}
               {today.length === 0 && (
                 <tr>
-                  <td colSpan={6} className="p-8 text-center text-sm text-muted-foreground">
+                  <td colSpan={7} className="p-8 text-center text-sm text-muted-foreground">
                     Aún no hay ventas registradas hoy.
                   </td>
                 </tr>
               )}
+
             </tbody>
           </table>
         </div>
