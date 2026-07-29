@@ -23,7 +23,7 @@ export function PosReceipt({
 }) {
   if (!sale) return null;
   const at = new Date(sale.at);
-  const units = sale.items.reduce((n, i) => n + i.qty, 0);
+  const units = sale.items.reduce((n, i) => n + (i.unit === "kg" ? 1 : i.qty), 0);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
