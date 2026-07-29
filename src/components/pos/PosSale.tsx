@@ -6,8 +6,17 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
-import { usePos, money, type Sale } from "@/lib/pos-store";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { usePos, money, formatQty, type Sale, type Product } from "@/lib/pos-store";
 import { PosReceipt } from "@/components/pos/PosReceipt";
+
 
 
 export function PosSale() {
@@ -28,6 +37,19 @@ export function PosSale() {
   const [category, setCategory] = useState("Todas");
   const [lastSale, setLastSale] = useState<Sale | null>(null);
   const [receiptOpen, setReceiptOpen] = useState(false);
+  const [weighing, setWeighing] = useState<Product | null>(null);
+  const [weightInput, setWeightInput] = useState("");
+
+  const confirmWeight = (kg: number) => {
+    if (!weighing) return;
+    if (!Number.isFinite(kg) || kg <= 0) return toast.error("Ingresa un peso válido");
+    if (kg > weighing.stock)
+      return toast.error(`Solo quedan ${formatQty(weighing.stock, "kg")} de ${weighing.name}`);
+    addToCart(weighing.id, kg);
+    setWeighing(null);
+    setWeightInput("");
+  };
+
 
 
   const categories = useMemo(
@@ -95,22 +117,37 @@ export function PosSale() {
             <button
               key={p.id}
               onClick={() => {
-                if (p.stock < 1) return toast.error(`${p.name} sin stock`);
+                if (p.stock <= 0) return toast.error(`${p.name} sin stock`);
+                if (p.unit === "kg") {
+                  setWeighing(p);
+                  setWeightInput("");
+                  return;
+                }
                 addToCart(p.id);
               }}
-              disabled={p.stock < 1}
+              disabled={p.stock <= 0}
               className="group flex h-full flex-col justify-between rounded-xl border border-border bg-card p-4 text-left transition-all hover:-translate-y-0.5 hover:border-primary hover:shadow-md disabled:opacity-50 disabled:hover:translate-y-0"
             >
               <div>
                 <p className="text-xs uppercase tracking-wide text-muted-foreground">{p.category}</p>
                 <p className="mt-1 font-medium leading-snug text-card-foreground">{p.name}</p>
               </div>
-              <div className="mt-4 flex items-end justify-between">
-                <span className="text-lg font-semibold text-primary">{money(p.price)}</span>
-                <Badge variant={p.stock <= 5 ? "destructive" : "secondary"}>{p.stock} u.</Badge>
+              <div className="mt-4 flex items-end justify-between gap-2">
+                <span className="text-lg font-semibold text-primary">
+                  {money(p.price)}
+                  {p.unit === "kg" && (
+                    <span className="text-xs font-normal text-muted-foreground"> /kg</span>
+                  )}
+                </span>
+                <Badge
+                  variant={p.stock <= (p.unit === "kg" ? 3 : 5) ? "destructive" : "secondary"}
+                >
+                  {formatQty(p.stock, p.unit)}
+                </Badge>
               </div>
             </button>
           ))}
+
           {visible.length === 0 && (
             <p className="col-span-full py-12 text-center text-sm text-muted-foreground">
               No se encontraron productos.
@@ -164,12 +201,14 @@ export function PosSale() {
               {cart.map((line) => {
                 const p = products.find((x) => x.id === line.productId);
                 if (!p) return null;
+                const step = p.unit === "kg" ? 0.1 : 1;
                 return (
                   <div key={line.productId} className="flex items-center gap-2">
                     <div className="min-w-0 flex-1">
                       <p className="truncate text-sm font-medium">{p.name}</p>
                       <p className="text-xs text-muted-foreground">
-                        {money(p.price)} · subtotal {money(p.price * line.qty)}
+                        {money(p.price)}
+                        {p.unit === "kg" ? "/kg" : ""} · subtotal {money(p.price * line.qty)}
                       </p>
                     </div>
                     <div className="flex items-center gap-1">
@@ -177,16 +216,18 @@ export function PosSale() {
                         size="icon"
                         variant="outline"
                         className="size-7"
-                        onClick={() => setQty(p.id, line.qty - 1)}
+                        onClick={() => setQty(p.id, line.qty - step)}
                       >
                         <Minus className="size-3" />
                       </Button>
-                      <span className="w-6 text-center text-sm tabular-nums">{line.qty}</span>
+                      <span className="w-14 text-center text-xs tabular-nums">
+                        {formatQty(line.qty, p.unit)}
+                      </span>
                       <Button
                         size="icon"
                         variant="outline"
                         className="size-7"
-                        onClick={() => setQty(p.id, line.qty + 1)}
+                        onClick={() => setQty(p.id, line.qty + step)}
                       >
                         <Plus className="size-3" />
                       </Button>
@@ -202,6 +243,7 @@ export function PosSale() {
                   </div>
                 );
               })}
+
             </div>
           </ScrollArea>
           <Separator />
@@ -238,6 +280,54 @@ export function PosSale() {
         </div>
         <PosReceipt sale={lastSale} open={receiptOpen} onOpenChange={setReceiptOpen} />
       </aside>
+
+      <Dialog open={weighing !== null} onOpenChange={(o) => !o && setWeighing(null)}>
+        <DialogContent className="max-w-xs">
+          <DialogHeader>
+            <DialogTitle>{weighing?.name}</DialogTitle>
+            <DialogDescription>
+              {weighing && `${money(weighing.price)} por kg · disponible ${formatQty(weighing.stock, "kg")}`}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid grid-cols-4 gap-2">
+            {[0.25, 0.5, 1, 2].map((kg) => (
+              <Button key={kg} variant="outline" size="sm" onClick={() => confirmWeight(kg)}>
+                {kg} kg
+              </Button>
+            ))}
+          </div>
+          <div className="flex items-center gap-2">
+            <Input
+              type="number"
+              min={0}
+              step={0.01}
+              autoFocus
+              placeholder="Peso en kg"
+              value={weightInput}
+              onChange={(e) => setWeightInput(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") confirmWeight(Number(weightInput));
+              }}
+            />
+            <span className="text-sm text-muted-foreground">kg</span>
+          </div>
+          {weighing && Number(weightInput) > 0 && (
+            <p className="text-sm text-muted-foreground">
+              Subtotal:{" "}
+              <span className="font-semibold text-primary">
+                {money(weighing.price * Number(weightInput))}
+              </span>
+            </p>
+          )}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setWeighing(null)}>
+              Cancelar
+            </Button>
+            <Button onClick={() => confirmWeight(Number(weightInput))}>Agregar</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
 
     </div>
   );

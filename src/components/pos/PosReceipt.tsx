@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/dialog";
 import { Separator } from "@/components/ui/separator";
 import { BUSINESS } from "@/lib/business";
-import { money, type Sale } from "@/lib/pos-store";
+import { money, formatQty, type Sale } from "@/lib/pos-store";
 
 export function PosReceipt({
   sale,
@@ -23,7 +23,7 @@ export function PosReceipt({
 }) {
   if (!sale) return null;
   const at = new Date(sale.at);
-  const units = sale.items.reduce((n, i) => n + i.qty, 0);
+  const units = sale.items.reduce((n, i) => n + (i.unit === "kg" ? 1 : i.qty), 0);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -76,7 +76,7 @@ export function PosReceipt({
             {sale.items.map((i) => (
               <div key={i.productId} className="flex justify-between gap-2">
                 <span className="min-w-0 flex-1 truncate">
-                  {i.qty}× {i.name}
+                  {i.unit === "kg" ? `${formatQty(i.qty, i.unit)} ${i.name}` : `${i.qty}× ${i.name}`}
                 </span>
                 <span className="tabular-nums">{money(i.price * i.qty)}</span>
               </div>
@@ -86,7 +86,7 @@ export function PosReceipt({
           <Separator className="my-3" />
 
           <div className="flex justify-between text-muted-foreground">
-            <span>Artículos</span>
+            <span>Ítems</span>
             <span className="tabular-nums">{units}</span>
           </div>
           <div className="flex justify-between text-muted-foreground">

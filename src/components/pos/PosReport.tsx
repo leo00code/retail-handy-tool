@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { usePos, money, isToday, type Sale } from "@/lib/pos-store";
+import { usePos, money, isToday, formatQty, type Sale } from "@/lib/pos-store";
 import { PosReceipt } from "@/components/pos/PosReceipt";
 
 export function PosReport() {
@@ -13,12 +13,13 @@ export function PosReport() {
   const units = today.reduce((s, v) => s + v.items.reduce((n, i) => n + i.qty, 0), 0);
   const avg = today.length ? total / today.length : 0;
 
-  const byProduct = new Map<string, { name: string; qty: number; total: number }>();
+  const byProduct = new Map<string, { name: string; unit: Sale["items"][number]["unit"]; qty: number; total: number }>();
   today.forEach((s) =>
     s.items.forEach((i) => {
-      const cur = byProduct.get(i.productId) ?? { name: i.name, qty: 0, total: 0 };
+      const cur = byProduct.get(i.productId) ?? { name: i.name, unit: i.unit, qty: 0, total: 0 };
       byProduct.set(i.productId, {
         name: i.name,
+        unit: i.unit,
         qty: cur.qty + i.qty,
         total: cur.total + i.qty * i.price,
       });
@@ -106,7 +107,7 @@ export function PosReport() {
                   </td>
                   <td className="p-3">{s.employeeName ?? "Sin asignar"}</td>
                   <td className="p-3 text-muted-foreground">
-                    {s.items.map((i) => `${i.qty}× ${i.name}`).join(", ")}
+                    {s.items.map((i) => (i.unit === "kg" ? `${formatQty(i.qty, i.unit)} ${i.name}` : `${i.qty}× ${i.name}`)).join(", ")}
                   </td>
                   <td className="p-3">
                     <Badge variant="secondary">{s.payment}</Badge>
@@ -157,7 +158,7 @@ export function PosReport() {
                 <li key={t.name} className="flex items-center justify-between gap-3 text-sm">
                   <span className="truncate">{t.name}</span>
                   <span className="shrink-0 text-muted-foreground tabular-nums">
-                    {t.qty} u. · {money(t.total)}
+                    {formatQty(t.qty, t.unit)} · {money(t.total)}
                   </span>
                 </li>
               ))}
