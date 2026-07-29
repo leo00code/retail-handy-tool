@@ -225,9 +225,20 @@ export function PosSale() {
                 Transf.
               </Button>
             </div>
+            {lastSale && (
+              <Button
+                variant="ghost"
+                className="w-full"
+                onClick={() => setReceiptOpen(true)}
+              >
+                Ver último ticket ({lastSale.id})
+              </Button>
+            )}
           </div>
         </div>
+        <PosReceipt sale={lastSale} open={receiptOpen} onOpenChange={setReceiptOpen} />
       </aside>
+
     </div>
   );
 }

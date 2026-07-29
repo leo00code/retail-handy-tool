@@ -1,9 +1,13 @@
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { usePos, money, isToday } from "@/lib/pos-store";
+import { usePos, money, isToday, type Sale } from "@/lib/pos-store";
+import { PosReceipt } from "@/components/pos/PosReceipt";
 
 export function PosReport() {
   const { sales } = usePos();
+  const [ticket, setTicket] = useState<Sale | null>(null);
+
   const today = sales.filter((s) => isToday(s.at));
   const total = today.reduce((s, v) => s + v.total, 0);
   const units = today.reduce((s, v) => s + v.items.reduce((n, i) => n + i.qty, 0), 0);
