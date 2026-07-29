@@ -9,7 +9,19 @@ import { Separator } from "@/components/ui/separator";
 import { usePos, money, type Sale } from "@/lib/pos-store";
 
 export function PosSale() {
-  const { products, cart, addToCart, setQty, removeFromCart, clearCart, cartTotal, checkout } = usePos();
+  const {
+    products,
+    cart,
+    addToCart,
+    setQty,
+    removeFromCart,
+    clearCart,
+    cartTotal,
+    checkout,
+    employees,
+    activeEmployeeId,
+    setActiveEmployeeId,
+  } = usePos();
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState("Todas");
 
@@ -25,12 +37,22 @@ export function PosSale() {
   );
 
   const pay = (method: Sale["payment"]) => {
-    const sale = checkout(method);
-    if (!sale) {
+    if (cart.length === 0) {
       toast.error("El carrito está vacío");
       return;
     }
-    toast.success(`Venta ${sale.id} cobrada`, { description: `${money(sale.total)} en ${method}` });
+    if (!activeEmployeeId) {
+      toast.error("Selecciona el empleado que realiza la venta");
+      return;
+    }
+    const sale = checkout(method);
+    if (!sale) {
+      toast.error("No se pudo registrar la venta");
+      return;
+    }
+    toast.success(`Venta ${sale.id} cobrada por ${sale.employeeName}`, {
+      description: `${money(sale.total)} en ${method}`,
+    });
   };
 
   return (
