@@ -281,6 +281,54 @@ export function PosSale() {
         <PosReceipt sale={lastSale} open={receiptOpen} onOpenChange={setReceiptOpen} />
       </aside>
 
+      <Dialog open={weighing !== null} onOpenChange={(o) => !o && setWeighing(null)}>
+        <DialogContent className="max-w-xs">
+          <DialogHeader>
+            <DialogTitle>{weighing?.name}</DialogTitle>
+            <DialogDescription>
+              {weighing && `${money(weighing.price)} por kg · disponible ${formatQty(weighing.stock, "kg")}`}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid grid-cols-4 gap-2">
+            {[0.25, 0.5, 1, 2].map((kg) => (
+              <Button key={kg} variant="outline" size="sm" onClick={() => confirmWeight(kg)}>
+                {kg} kg
+              </Button>
+            ))}
+          </div>
+          <div className="flex items-center gap-2">
+            <Input
+              type="number"
+              min={0}
+              step={0.01}
+              autoFocus
+              placeholder="Peso en kg"
+              value={weightInput}
+              onChange={(e) => setWeightInput(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") confirmWeight(Number(weightInput));
+              }}
+            />
+            <span className="text-sm text-muted-foreground">kg</span>
+          </div>
+          {weighing && Number(weightInput) > 0 && (
+            <p className="text-sm text-muted-foreground">
+              Subtotal:{" "}
+              <span className="font-semibold text-primary">
+                {money(weighing.price * Number(weightInput))}
+              </span>
+            </p>
+          )}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setWeighing(null)}>
+              Cancelar
+            </Button>
+            <Button onClick={() => confirmWeight(Number(weightInput))}>Agregar</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+
     </div>
   );
 }
