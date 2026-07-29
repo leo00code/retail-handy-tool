@@ -25,6 +25,11 @@ export type Sale = {
   employeeName: string;
 };
 
+export const roundQty = (n: number, unit: Unit) =>
+  unit === "kg" ? Math.round(n * 1000) / 1000 : Math.round(n);
+
+export const formatQty = (n: number, unit: Unit) =>
+  unit === "kg" ? `${n.toLocaleString("es-CL", { maximumFractionDigits: 3 })} kg` : `${n} u.`;
 
 const SEED: Product[] = [
   { id: "p1", name: "Leche entera 1L", category: "Lácteos", price: 1290, stock: 24, unit: "unidad" },
